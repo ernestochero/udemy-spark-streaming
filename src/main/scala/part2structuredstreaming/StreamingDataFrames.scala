@@ -22,7 +22,11 @@ object StreamingDataFrames {
       .load()
 
     // transformation
-    val shortLines: DataFrame = lines.filter(length(col("value")) <= 5)
+    val line = col("value")
+    val fuckConditionLines = when(line.contains("fuck"), "****" ).otherwise(line)
+    val regexFuckCondition = regexp_replace(line,"fuck", "****")
+    val fuckFilterLines = lines.withColumn("value", regexFuckCondition)
+    val shortLines: DataFrame = lines.filter(length(line) <= 5)
 
     // tell between a static vs a streaming DF
     println(shortLines.isStreaming)
@@ -64,9 +68,9 @@ object StreamingDataFrames {
       .format("console")
       .outputMode("append")
       .trigger(
-        // Trigger.ProcessingTime(2.seconds) // every 2 seconds run the query
-        // Trigger.Once() // single batch, then terminate
-        Trigger.Continuous(2.seconds) // experimental, every 2 seconds create a batch with whatever you have
+        //Trigger.ProcessingTime(2.seconds) // every 2 seconds run the query
+        Trigger.Once() // single batch, then terminate
+        //Trigger.Continuous(2.seconds) // experimental, every 2 seconds create a batch with whatever you have
       )
       .start()
       .awaitTermination()
