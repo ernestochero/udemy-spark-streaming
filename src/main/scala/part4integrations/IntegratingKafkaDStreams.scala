@@ -59,16 +59,14 @@ object IntegratingKafkaDStreams {
     val inputData = ssc.socketTextStream("localhost", 12345)
 
     // transform data
-    val processedData = inputData.map(_.toUpperCase())
+    val processedData = inputData.map(in => s"[INFO] SuperPowLogging ${in.toUpperCase}")
 
     processedData.foreachRDD { rdd =>
       rdd.foreachPartition { partition =>
         // inside this lambda, the code is run by a single executor
 
         val kafkaHashMap = new util.HashMap[String, Object]()
-        kafkaParams.foreach { pair =>
-          kafkaHashMap.put(pair._1, pair._2)
-        }
+        kafkaParams.foreach { case (str, obj) => kafkaHashMap.put(str, obj) }
 
         // producer can insert records into the Kafka topics
         // available on this executor
